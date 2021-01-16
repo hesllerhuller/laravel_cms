@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Model
+class User extends Model implements Authenticatable
 {
-    use HasApiTokens, Notifiable, HasRoles, HasFactory;
+    use HasApiTokens, Notifiable, HasRoles, HasFactory, MustVerifyEmail, \Illuminate\Auth\Authenticatable ;
 
     /**
      * The attributes that are mass assignable.

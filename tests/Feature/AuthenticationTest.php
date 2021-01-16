@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\User;
+use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
-use Database\Factories\UserFactory;
+use Database\Factories\BackupUserFactory;
 
 class AuthenticationTest extends TestCase
 {
@@ -31,7 +31,7 @@ class AuthenticationTest extends TestCase
     public function test_user_can_create_account()
     {
 
-        $this->withoutExceptionHandling();
+//        $this->withoutExceptionHandling();
 
         $password = bcrypt('123456789');
 
@@ -42,29 +42,67 @@ class AuthenticationTest extends TestCase
             'password_confirmation' => $password,
         ] );
 
-        dd($response->status());
+        $response->assertRedirect('/email/verify');
+        $this->assertDatabaseCount('users', 1);
+        $this->assertDatabaseHas('users', ['name' => 'Hesller Huller', 'email' => 'exemplo@gmail.com',
+            'email_verified_at'=>null
+        ]);
 
-        $response->assertStatus(201);
     }
 
     public function test_system_redirect_user_to_verify_email()
     {
-        $response = $this->get('/email/verify');
-        dd($response);
+
+        $password = bcrypt('123456789');
+
+        $response = $this->post('/auth/register-v2', [
+            'name' => 'Hesller Huller',
+            'email' => 'exemplo@gmail.com',
+            'password' => $password,
+            'password_confirmation' => $password,
+        ] );
+
+        $response->assertRedirect('/email/verify');
     }
 
-    public function test_login_user()
+    public function test_user_can_not_login_if_email_not_verified()
     {
-        $user = User::create([
-            'name' => 'Hadesh',
-            'email'=>'hadesh@gmail.com',
-            'password'=>bcrypt('123456789'),
+
+        $this->withoutExceptionHandling();
+
+//        $password = bcrypt('123456789');
+
+//        $user = User::create([
+//            'name' => 'Hadesh',
+//            'email'=>'hadesh@gmail.com',
+//            'password'=>$password,
+//        ]);
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => '123456789'
         ]);
 
-        $response = $this->actingAs($user)->get('/login');
+        $response->assertRedirect('/email/verify');
+        $this->assertAuthenticatedAs($user);
+    }
 
+    public function test_if_user_with_verified_email_is_redirected_to_dashboard()
+    {
+        $this->withoutExceptionHandling();
 
-        dd($response->getContent());
-        $response->assertStatus(200);
+        // assert user with verified email is redirected to dashboard
+        $user = User::factory()->create([]);
+        $response = $this->actingAs($user)->get('/email/verify');
+        $response->assertRedirect('/dashboard');
+        $this->assertAuthenticatedAs($user);
+
+        // assert user with unverified email is not redirect, but stays in email verification page notice
+        $user = User::factory()->create(['email_verified_at'=>null]);
+        $response = $this->actingAs($user)->get('/email/verify');
+        $response->assertViewIs(route('verification.notice'));
+        $this->assertAuthenticatedAs($user);
+
     }
 }

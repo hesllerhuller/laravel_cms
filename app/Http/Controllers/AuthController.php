@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-use App\User;
+use App\BackupUser;
 use Validator;
 
 class AuthController extends Controller
@@ -28,7 +28,7 @@ class AuthController extends Controller
       'c_password' => 'required|same:password',
     ]);
 
-    $user = new User([
+    $user = new BackupUser([
       'name' => $request->name,
       'email' => $request->email,
       'password' => bcrypt($request->password)

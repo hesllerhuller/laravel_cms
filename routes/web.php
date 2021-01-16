@@ -22,6 +22,7 @@ Auth::routes(['verify' => true]);
 // Main Page Route
 Route::get('/dashboard', 'DashboardController@dashboardEcommerce')->name('dashboard-ecommerce');
 Route::get('/', [LoginController::class, 'showLoginForm'])->name('auth-login');
+Route::post('/', [LoginController::class, 'showLoginForm'])->name('auth-login');
 
 /* Route Dashboards */
 Route::group(['prefix' => 'dashboard'], function () {
@@ -34,6 +35,7 @@ Route::group(['prefix' => 'dashboard'], function () {
 Route::group(['prefix' => 'auth'], function () {
     Route::get('login-v1', 'AuthenticationController@login_v1')->name('auth-login-v1');
     Route::get('login-v2', 'AuthenticationController@login_v2')->name('auth-login-v2');
+    Route::post('login-v2', [LoginController::class, 'login'])->name('auth-login-v2');
     Route::get('register-v1', 'AuthenticationController@register_v1')->name('auth-register-v1');
     Route::get('register-v2', 'AuthenticationController@register_v2')->name('auth-register-v2');
     Route::post('register-v2', [RegisterController::class, 'register'])->name('auth-register-v2');
